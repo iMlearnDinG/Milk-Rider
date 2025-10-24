@@ -1,17 +1,29 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Milk Rider</title>
+    <title>Milk Runner</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="m-0 p-0">
 
     <canvas id="game-canvas"></canvas>
 
-    <div class="fixed left-4 right-4 top-4 z-10 rounded-xl bg-black/50 p-3 text-white shadow-lg backdrop-blur-md" style="border: 1px solid rgba(255, 255, 255, 0.1);">
+    <div id="intro-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4">
+        <h1 id="intro-title">Milk Runner</h1>
+        <div id="intro-milk-icon">🥛</div>
+        <div class="mt-4 flex flex-col gap-4">
+            <button id="play-button" class="intro-btn bg-blue-500 hover:bg-blue-600">Play</button>
+            <button id="instructions-button" class="intro-btn bg-gray-600 hover:bg-gray-700">Instructions</button>
+        </div>
+    </div>
+
+    <div class="top-metrics-bar fixed left-4 right-4 top-4 z-10 rounded-xl bg-black/50 p-3 text-white shadow-lg backdrop-blur-md" style="border: 1px solid rgba(255, 255, 255, 0.1);">
         <div class="container mx-auto flex max-w-4xl items-center justify-between text-sm sm:text-lg">
             <div>
                 <strong>Distance:</strong> <span id="distance-display">0</span>m
@@ -31,42 +43,59 @@
         </button>
     </div>
 
-    <div id="on-screen-upgrades-container" class="fixed left-4 top-24 z-10 flex flex-col gap-2">
-        <button id="upgrade-speed-button" class="upgrade-btn bg-blue-500 hover:bg-blue-600">
-            <span class="upgrade-title">Pedal Power</span>
-            <div class="upgrade-details">
-                <span>Lvl: <span id="speed-level-display">1</span></span>
-                <span>Cost: $<span id="speed-cost-display">50</span></span>
-            </div>
-        </button>
-        <button id="upgrade-efficiency-button" class="upgrade-btn bg-green-500 hover:bg-green-600">
-            <span class="upgrade-title">Milk Efficiency</span>
-            <div class="upgrade-details">
-                <span>Lvl: <span id="efficiency-level-display">1</span></span>
-                <span>Cost: $<span id="efficiency-cost-display">50</span></span>
-            </div>
-        </button>
-        <button id="upgrade-sell-button" class="upgrade-btn bg-yellow-500 hover:bg-yellow-600">
-            <span class="upgrade-title">Milk Value</span>
-            <div class="upgrade-details">
-                <span>Lvl: <span id="sell-level-display">1</span></span>
-                <span>Cost: $<span id="sell-cost-display">75</span></span>
-            </div>
-        </button>
-        <button id="upgrade-collector-button" class="upgrade-btn bg-pink-500 hover:bg-pink-600">
-            <span class="upgrade-title">Bottle Collector</span>
-            <div class="upgrade-details">
-                <span>Lvl: <span id="collector-level-display">1</span></span>
-                <span>Cost: $<span id="collector-cost-display">200</span></span>
-            </div>
-        </button>
+    <div class="fixed left-4 top-20 z-10 rounded-xl bg-black/50 p-3 text-white shadow-lg backdrop-blur-md" style="border: 1px solid rgba(255, 255, 255, 0.1);">
+        <h3 class="text-center font-bold mb-2 text-sm">Upgrades</h3>
+        <div id="on-screen-upgrades-container" class="flex flex-col gap-2">
+            <button id="upgrade-speed-button" class="upgrade-btn bg-blue-500 hover:bg-blue-600">
+                <span class="upgrade-title">Pedal Power</span>
+                <span class="upgrade-description">Go faster when holding.</span>
+                <div class="upgrade-details">
+                    <span>Lvl: <span id="speed-level-display">1</span></span>
+                    <span>Cost: $<span id="speed-cost-display">50</span></span>
+                </div>
+            </button>
+            <button id="upgrade-efficiency-button" class="upgrade-btn bg-green-500 hover:bg-green-600">
+                <span class="upgrade-title">Milk Efficiency</span>
+                <span class="upgrade-description">Fills the trailer faster.</span>
+                <div class="upgrade-details">
+                    <span>Lvl: <span id="efficiency-level-display">1</span></span>
+                    <span>Cost: $<span id="efficiency-cost-display">50</span></span>
+                </div>
+            </button>
+            <button id="upgrade-sell-button" class="upgrade-btn bg-yellow-500 hover:bg-yellow-600">
+                <span class="upgrade-title">Milk Value</span>
+                <span class="upgrade-description">Increases sell price.</span>
+                <div class="upgrade-details">
+                    <span>Lvl: <span id="sell-level-display">1</span></span>
+                    <span>Cost: $<span id="sell-cost-display">75</span></span>
+                </div>
+            </button>
+            <button id="upgrade-collector-button" class="upgrade-btn bg-pink-500 hover:bg-pink-600">
+                <span class="upgrade-title">Bottle Collector</span>
+                <span class="upgrade-description">Collect more bottles.</span>
+                <div class="upgrade-details">
+                    <span>Lvl: <span id="collector-level-display">1</span></span>
+                    <span>Cost: $<span id="collector-cost-display">200</span></span>
+                </div>
+            </button>
+            <button id="upgrade-fill-button" class="upgrade-btn bg-purple-500 hover:bg-purple-600">
+                <span class="upgrade-title">Boost Fill</span>
+                <span class="upgrade-description">Bottles added per fill.</span>
+                <div class="upgrade-details">
+                    <span>Lvl: <span id="boost-fill-level-display">1</span></span>
+                    <span>Cost: $<span id="boost-fill-cost-display">150</span></span>
+                </div>
+            </button>
+        </div>
     </div>
-
     <button id="bottle-button" class="game-btn-circle floating-btn" disabled style="left: 100px; top: 50%;">
         Bottle Milk
     </button>
     <button id="boost-button" class="game-btn-circle floating-btn" disabled style="left: 100px; top: calc(50% + 90px);">
         Boost
+    </button>
+    <button id="sell-button" class="game-btn-circle floating-btn" disabled style="left: 100px; top: calc(50% - 90px);">
+        $<br>Sell
     </button>
 
     <div id="frenzy-display" class="flex hidden flex-col items-center">
@@ -74,74 +103,111 @@
         <div id="frenzy-timer-display" class="frenzy-timer">0.0s</div>
     </div>
 
+    <div id="welcome-modal" class="modal-backdrop fixed inset-0 z-50 flex hidden items-center justify-center p-4">
+        <div class="w-full max-w-lg rounded-2xl bg-gray-800/90 p-6 text-gray-100 shadow-xl backdrop-blur-xl" style="border: 1px solid rgba(255, 255, 255, 0.1);">
+            <h1 class="mb-6 text-center text-4xl font-bold tracking-tight">Welcome to Milk Rider!</h1>
 
-    <div id="welcome-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="w-full max-w-lg rounded-2xl bg-white p-6 text-gray-800 shadow-xl">
-            <h1 class="mb-4 text-center text-4xl font-bold">Welcome to Milk Rider!</h1>
-            <p class="mb-6 text-center text-lg">Here's how to play:</p>
-
-            <ol class="list-inside list-decimal space-y-4 text-lg">
-                <li><strong>HOLD ANYWHERE</strong> to pedal (accelerate).</li>
-                <li><strong>MOVE CURSOR/FINGER</strong> up/down to steer smoothly within the road.</li>
-                <li>Your milk trailer now fills based on your <strong>speed</strong>. Go fast to fill it fast!</li>
-                <li>When the trailer is full, the floating <strong class="text-blue-600">Bottle Milk</strong> button glows. Tap it!</li>
-                <li>Sell full trailers at houses by tapping the <strong class="text-green-600">$</strong> icon.</li>
-                <li>Hit <strong class="text-gray-400">ramps</strong> to jump and collect <strong class="text-yellow-400">rare milk bottles</strong>!</li>
-                <li>Use the on-screen buttons in the top-left to upgrade on the fly!</li>
-                <li>Check the <strong class="text-purple-500">Shop</strong> for powerful items!</li>
-            </ol>
-
-            <button id="start-game-button" class="mt-8 w-full transform rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 font-bold text-white transition-transform hover:scale-105 hover:from-blue-600 hover:to-purple-700">
-                Start Riding!
-            </button>
-        </div>
-    </div>
-
-
-    <div id="shop-modal" class="modal-backdrop fixed inset-0 z-50 flex hidden items-center justify-center p-4">
-        <div class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 text-gray-800 shadow-xl">
-            <h2 class="mb-2 text-center text-3xl font-bold">Item Shop</h2>
-            <p class="mb-4 text-center text-sm text-gray-500">Buy items for permanent bonuses!</p>
-
-            <div class="space-y-4">
-                <div class="rounded-lg bg-gray-100 p-3">
-                    <div class="mb-1 flex items-center justify-between">
-                        <span class="text-lg font-semibold">Praystation 7</span>
-                        <button id="buy-ps7" class="rounded-lg bg-green-500 px-3 py-1 font-bold text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50">$50,000</button>
+            <div class="instructions-grid">
+                <div class="instruction-item">
+                    <div class="icon-container bg-blue-500/20 text-blue-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6"><path d="M15.5 2.049a.75.75 0 01.278 1.417L12.06 6.25h2.69a.75.75 0 010 1.5h-3.5a.75.75 0 01-.75-.75V3.5a.75.75 0 011.5 0v2.69l3.222-2.784a.75.75 0 011.138-.278zM4.5 17.951a.75.75 0 01-.278-1.417L7.94 13.75H5.25a.75.75 0 010-1.5h3.5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-2.69L4.778 16.634a.75.75 0 01-1.138-.278z"></path></svg>
                     </div>
-                    <p class="text-sm text-gray-600">Bonus: Cosmetic item.</p>
+                    <div><strong>HOLD ANYWHERE</strong> to pedal your bike and gain speed.</div>
                 </div>
-                <div class="rounded-lg bg-gray-100 p-3">
-                    <div class="mb-1 flex items-center justify-between">
-                        <span class="text-lg font-semibold">Xblox Series Z</span>
-                        <button id="buy-xbz" class="rounded-lg bg-green-500 px-3 py-1 font-bold text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50">$75,000</button>
+                <div class="instruction-item">
+                    <div class="icon-container bg-green-500/20 text-green-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6"><path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.5a.75.75 0 01-1.5 0V3.75A.75.75 0 0110 3zM6.25 7.5a.75.75 0 000 1.5h7.5a.75.75 0 000-1.5H6.25z" clip-rule="evenodd"></path></svg>
                     </div>
-                    <p class="text-sm text-gray-600">Bonus: Increases Milk Trailer Capacity by 50%.</p>
+                    <div><strong>MOVE UP/DOWN</strong> to steer your rider along the road.</div>
                 </div>
-                <div class="rounded-lg bg-gray-100 p-3">
-                    <div class="mb-1 flex items-center justify-between">
-                        <span class="text-lg font-semibold">Golden Milk Can</span>
-                        <button id="buy-gmc" class="rounded-lg bg-green-500 px-3 py-1 font-bold text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50">$250,000</button>
+                <div class="instruction-item">
+                    <div class="icon-container bg-pink-500/20 text-pink-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6">
+                            <path d="M10 3.5a1.5 1.5 0 011.5 1.5v3.25a1.5 1.5 0 01-3 0V5A1.5 1.5 0 0110 3.5z" />
+                            <path d="M4 9a1.5 1.5 0 00-1.5 1.5v3.25a1.5 1.5 0 003 0V10.5A1.5 1.5 0 004 9zm12 0a1.5 1.5 0 00-1.5 1.5v3.25a1.5 1.5 0 003 0V10.5A1.5 1.5 0 0016 9z" />
+                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM3.464 4.536a6.5 6.5 0 119.192 9.192A6.5 6.5 0 013.464 4.536z" clip-rule="evenodd" />
+                        </svg>
                     </div>
-                    <p class="text-sm text-gray-600">Bonus: Increases all money earned by 10%.</p>
+                    <div>Steer to collect <strong class="text-white">Milk Bottles</strong> and special <strong class="text-green-400">Powerups</strong>.</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="icon-container bg-yellow-500/20 text-yellow-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd"></path></svg>
+                    </div>
+                    <div>Your milk trailer fills based on <strong class="text-yellow-300">SPEED</strong>. Go fast to fill it faster!</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="icon-container bg-sky-500/20 text-sky-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6">
+                            <path fill-rule="evenodd" d="M15.901 10.237a.75.75 0 01.44 1.28l-4.25 2.5a.75.75 0 01-.882 0l-4.25-2.5a.75.75 0 01.44-1.28l3.47.989V4.5a.75.75 0 011.5 0v6.726l3.47-.989zm-11.802 0a.75.75 0 00-.44 1.28l4.25 2.5a.75.75 0 00.882 0l4.25-2.5a.75.75 0 00-.44-1.28l-3.47.989V4.5a.75.75 0 00-1.5 0v6.726l-3.47-.989z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div>When full, trade your milk for a <strong class="text-orange-400">BOOST REFILL</strong> or <strong class="text-green-400">SELL</strong> it at houses.</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="icon-container bg-red-500/20 text-red-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6"><path d="M6.22 8.22a.75.75 0 011.06 0l1.97 1.97V6.75a.75.75 0 011.5 0v3.47l1.97-1.97a.75.75 0 111.06 1.06l-3.25 3.25a.75.75 0 01-1.06 0L6.22 9.28a.75.75 0 010-1.06z"></path><path d="M3.105 5.053a.75.75 0 011.06.02l4.25 4.5a.75.75 0 01-1.08 1.04l-3.72-3.938v5.176a.75.75 0 01-1.5 0V5.234a.75.75 0 01.99-.72l.001-.001.002 0zM16.895 5.053a.75.75 0 01.02 1.06l-4.25 4.5a.75.75 0 11-1.08-1.04l3.72-3.938v5.176a.75.75 0 01-1.5 0V5.234a.75.75 0 01.99-.72l.001-.001.002 0z"></path></svg>
+                    </div>
+                    <div>Hit <strong class="text-gray-400">ramps</strong> to jump and collect <strong class="text-yellow-400">rare milk bottles</strong>!</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="icon-container bg-purple-500/20 text-purple-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6"><path d="M2.22 2.22a.75.75 0 011.06 0l14.5 14.5a.75.75 0 01-1.06 1.06L2.22 3.28a.75.75 0 010-1.06zM11.5 1.75a.75.75 0 01.75.75v5.44l-2-2V3.06a18.068 18.068 0 015.44 0L17.94 2.5a.75.75 0 011.06 0l.25.25a.75.75 0 010 1.06l-2.25 2.25a.75.75 0 01-1.06 0l-.25-.25V8.5a.75.75 0 01-1.5 0V6.52l-2.47 2.47a.75.75 0 01-1.06-1.06L11.5 4.56V2.5a.75.75 0 010-1.5z"></path><path d="M12.97 9.53a.75.75 0 011.06 0l2.25 2.25a.75.75 0 010 1.06l-.25.25a.75.75 0 01-1.06 0l-1.25-1.25a18.068 18.068 0 010 5.44L14.25 19.5a.75.75 0 010 1.06l-.25.25a.75.75 0 01-1.06 0L10.47 18.34a.75.75 0 010-1.06l.25-.25V11.5a.75.75 0 011.5 0v2.06l1.25-1.25z"></path></svg>
+                    </div>
+                    <div>Buy on-screen <strong class="text-purple-400">upgrades</strong> and powerful permanent items in the <strong class="text-purple-400">Shop</strong>!</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="icon-container bg-orange-500/20 text-orange-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6">
+                            <path fill-rule="evenodd" d="M6 3a3 3 0 00-3 3v2a3 3 0 003 3h2a3 3 0 003-3V6a3 3 0 00-3-3H6zm1.5 1.5a.75.75 0 00-.75.75V6a.75.75 0 00.75.75h2a.75.75 0 00.75-.75V4.25a.75.75 0 00-.75-.75h-2zM6 11a3 3 0 00-3 3v2a3 3 0 003 3h2a3 3 0 003-3v-2a3 3 0 00-3-3H6zm1.5 1.5a.75.75 0 00-.75.75V14a.75.75 0 00.75.75h2a.75.75 0 00.75-.75v-1.75a.75.75 0 00-.75-.75h-2z" clip-rule="evenodd" />
+                            <path d="M14 3.5a1.5 1.5 0 011.5-1.5h1a1.5 1.5 0 011.5 1.5v1a1.5 1.5 0 01-1.5 1.5h-1a1.5 1.5 0 01-1.5-1.5v-1zM14 11.5a1.5 1.5 0 011.5-1.5h1a1.5 1.5 0 011.5 1.5v1a1.5 1.5 0 01-1.5 1.5h-1a1.5 1.5 0 01-1.5-1.5v-1z" />
+                        </svg>
+                    </div>
+                    <div>Chain boosts to start a <strong class="text-red-400">MILK FRENZY</strong> and set a world-record time!</div>
+                </div>
+                <div class="instruction-item">
+                    <div class="icon-container bg-gray-300/20 text-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 w-6">
+                            <path d="M10.75 1.25a2 2 0 00-3.5 0C5.466 1.25 4 2.716 4 4.5c0 1.784 1.466 3.25 3.25 3.25.524 0 1.023-.128 1.458-.357.435.23.934.357 1.458.357 1.784 0 3.25-1.466 3.25-3.25 0-1.784-1.466-3.25-3.25-3.25z" />
+                            <path fill-rule="evenodd" d="M8.25 8.25a.75.75 0 01.75.75v1.25H11a.75.75 0 010 1.5H9a.75.75 0 01-.75-.75V9a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+                            <path d="M4.1 11.96a.75.75 0 011.05-.14l.82 1.23a.75.75 0 01-.9 1.2l-1.04-1.56a.75.75 0 01.07-1.05zM15.9 11.96a.75.75 0 00-1.05-.14l-.82 1.23a.75.75 0 00.9 1.2l1.04-1.56a.75.75 0 00-.07-1.05z" />
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM2 10a8 8 0 1116 0 8 8 0 01-16 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div>Roll for the 99.99% <strong class="text-yellow-300">Pure Golden Milk Can</strong> and own the NFTemu.</div>
                 </div>
             </div>
-
-            <hr class="my-4 border-gray-300">
-
-            <h3 class="mb-2 text-center text-xl font-bold">Inventory</h3>
-            <ul id="inventory-list" class="list-inside list-disc text-center text-gray-600">
-                <li>No items yet!</li>
-            </ul>
-
-            <button id="close-shop-button" class="mt-6 w-full rounded-lg bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-600">
+            <button id="close-welcome-button" class="mt-8 w-full transform rounded-lg bg-gray-600 px-6 py-3 font-bold text-white transition-transform hover:scale-105 hover:bg-gray-700">
                 Close
             </button>
         </div>
     </div>
 
-    <div id="message-container"></div>
+    <div id="shop-modal" class="modal-backdrop fixed inset-0 z-50 flex hidden items-center justify-center p-4">
+        <div class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 text-gray-800 shadow-xl">
+            <h2 class="mb-2 text-center text-3xl font-bold">Item Shop</h2>
+            <p class="mb-4 text-center text-sm text-gray-500">Buy items for permanent bonuses!</p>
+            <div id="shop-items-container" class="space-y-3"></div>
+            <hr class="my-4 border-gray-300">
+            <h3 class="mb-2 text-center text-xl font-bold">Inventory</h3>
+            <div id="inventory-list" class="space-y-2 text-gray-600"></div>
+            <button id="close-shop-button" class="mt-6 w-full rounded-lg bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-600">Close</button>
+        </div>
+    </div>
+    <div id="gmc-reveal-modal" class="modal-backdrop fixed inset-0 z-50 flex hidden items-center justify-center p-4">
+        <div id="gmc-card" class="relative w-full max-w-sm transform rounded-3xl bg-gray-800 p-6 text-white shadow-2xl transition-all" style="border: 2px solid #4a4a4a;">
+            <div id="gmc-card-art" class="mb-4 text-center text-8xl"><span class="drop-shadow-lg">🥛</span></div>
+            <h2 id="gmc-card-name" class="mb-2 text-center text-3xl font-bold">Golden Milk Can</h2>
+            <p class="text-center text-gray-400">Purity Analysis Complete</p>
+            <div class="my-6 rounded-lg bg-black/50 p-4 text-center">
+                <span class="text-lg uppercase text-yellow-400">Money Bonus</span>
+                <p id="gmc-card-purity" class="font-black text-6xl tracking-tighter text-yellow-300">55.55%</p>
+            </div>
+            <button id="close-gmc-modal-button" class="mt-4 w-full rounded-lg bg-gray-600 px-4 py-2 font-bold text-white hover:bg-gray-700">Awesome!</button>
+        </div>
+    </div>
 
+    <div id="message-container"></div>
 
     <script src="ui.js"></script>
     <script src="main.js"></script>
