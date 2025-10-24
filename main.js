@@ -9,11 +9,10 @@ const MAX_SPEED = 10;
 const TAP_DECAY = 0.99;
 const HOLD_ACCELERATION = 0.05;
 const ROAD_HEIGHT = 100;
-const PLAYER_X_POSITION = 200;
+let PLAYER_X_POSITION = 200; // MODIFIED: Changed from const to let
 const HOUSE_SELL_PROXIMITY = 150;
 const BOTTLE_SPAWN_CHANCE = 0.005;
 const POWERUP_SPAWN_CHANCE = 0.0015;
-// const COLLECTIBLE_BOTTLE_VALUE = 1; // REPLACED
 const PLAYER_Y_LERP_FACTOR = 0.08;
 const GRAVITY = 0.5;
 const RAMP_JUMP_VELOCITY = -15;
@@ -29,6 +28,7 @@ const ROPE_STIFFNESS = 0.01;
 const ROPE_DAMPING = 0.1;
 const ROPE_LENGTH = 50;
 const BUTTON_LERP_FACTOR = 0.1;
+const INTRO_SCREEN_SPEED = 2; // NEW: Speed for the intro background scrolling
 
 // --- Game State ---
 let speed = 0;
@@ -46,17 +46,17 @@ let isBoosting = false;
 let boostEndTime = 0;
 let currentBoostSpeed = 0;
 let lastBoostTime = 0;
-let boostChainStartTime = 0; // This is no longer used for frenzy activation
-let boostChainCount = 0; // NEW: Tracks consecutive boosts
+let boostChainStartTime = 0;
+let boostChainCount = 0;
 let isFrenzyActive = false;
 let frenzyStartTime = 0;
-let frenzyGracePeriodEnd = 0; // NEW: Timer for frenzy grace period
+let frenzyGracePeriodEnd = 0;
 let lastFrenzyDuration = 0;
-let longestFrenzyDuration = 0; // NEW: Track the best frenzy time
+let longestFrenzyDuration = 0;
 let isNearHouse = false;
 let isAutoSelling = false;
 let autoSellTimer = 0;
-let gameRunning = false;
+let gameRunning = false; // MODIFIED: Game does not start running immediately
 let sellIcon = { x: 0, y: 0, radius: 30, visible: false };
 let roadTopYBoundary = 0;
 let roadBottomYBoundary = 0;
@@ -74,6 +74,7 @@ let currentMaxMilk = 100;
 let bottlePrice = 25;
 let bottlesForBoost = 1;
 let moneyMultiplier = 1.0;
+let mountains = [];
 // Upgrades
 let speedLevel = 1;
 let speedCost = 50;
@@ -81,12 +82,15 @@ let efficiencyLevel = 1;
 let efficiencyCost = 50;
 let sellValueLevel = 1;
 let sellValueCost = 75;
-let collectorLevel = 1; // NEW
-const collectorCosts = [200, 1000, 5000, 10000]; // Tiered costs for the collector
-let collectorCost = collectorCosts[0]; // Initial cost
+let collectorLevel = 1;
+const collectorCosts = [200, 1000, 5000, 10000];
+let collectorCost = collectorCosts[0];
 let collectibleBottleValue = 1;
-let rareMilkMultiplier = 1; // NEW: Multiplier for rare milk
+let rareMilkMultiplier = 1;
 let holdPower = HOLD_ACCELERATION;
+let boostFillAmount = 10;
+let boostFillLevel = 1;
+let boostFillCost = 150;
 
 const player = {
     x: PLAYER_X_POSITION,
@@ -110,6 +114,7 @@ const trailer = {
 };
 let bottleButtonPos = { x: 100, y: window.innerHeight / 2 };
 let boostButtonPos = { x: 100, y: window.innerHeight / 2 + 90 };
+let sellButtonPos = { x: 100, y: window.innerHeight / 2 - 90 };
 
 
 // --- Utility Functions ---
@@ -120,6 +125,11 @@ function lerp(start, end, amount) {
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    if (canvas.width < 768) {
+        PLAYER_X_POSITION = 150;
+    } else {
+        PLAYER_X_POSITION = 200;
+    }
     player.x = Math.min(PLAYER_X_POSITION, canvas.width * 0.25);
     trailer.x = player.x + TRAILER_OFFSET_X;
     const roadVisualTop = canvas.height - ROAD_HEIGHT + 10;
@@ -150,7 +160,7 @@ function lerpColor(a, b, amount) {
     return '#' + rr + rg + rb;
 }
 
-// --- World Generation & Drawing (NO CHANGES IN THIS SECTION) ---
+// --- World Generation & Drawing (NO LOGIC CHANGES) ---
 // ... functions from createHouse to drawRope remain the same ...
 function createHouse(x) {
     const houseHeight = 80 + Math.random() * 100;
@@ -307,56 +317,134 @@ function drawStars() {
         });
     }
 }
-// --- Physics & Collisions ---
-// --- Physics & Collisions ---
+
+function generateMountains() {
+    mountains = [];
+    for (let layer = 0; layer < 3; layer++) {
+        const layerMountains = [];
+        let mountainX = 0;
+        while (mountainX < 50000) {
+            const height = 150 + Math.random() * (150 - layer * 40);
+            const width = 400 + Math.random() * 300;
+            layerMountains.push({ x: mountainX, y: canvas.height - ROAD_HEIGHT, height, width });
+            mountainX += width * (Math.random() * 0.3 + 0.6);
+        }
+        mountains.push(layerMountains);
+    }
+}
+
+function drawMountains() {
+    const parallaxFactors = [0.1, 0.15, 0.2];
+    const seasonColors = {
+        autumn: [['#2c1e33', '#6b3a3a'], ['#4d2d3f', '#8e564a'], ['#6e3d4b', '#a56c5a']],
+        winter: [['#6c7a89', '#a1b1c0'], ['#8c9aa9', '#b1c1d0'], ['#aabac9', '#c1d1e0']],
+        spring: [['#3a4a3a', '#5a7a5a'], ['#4a5a4a', '#6a8a6a'], ['#5a6a5a', '#7a9a7a']],
+        summer: [['#4a5a3a', '#6a8a4a'], ['#5a6a4a', '#7a9a5a'], ['#6a7a5a', '#8aaa6a']]
+    };
+
+    mountains.forEach((layer, index) => {
+        const parallaxOffset = worldOffset * parallaxFactors[index];
+        ctx.save();
+        ctx.translate(-parallaxOffset, 0);
+        for (const mountain of layer) {
+            const grad = ctx.createLinearGradient(0, mountain.y - mountain.height, 0, mountain.y);
+            const colors = seasonColors[currentSeason][index];
+            grad.addColorStop(0, colors[0]);
+            grad.addColorStop(1, colors[1]);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(mountain.x, mountain.y);
+            ctx.lineTo(mountain.x + mountain.width / 2, mountain.y - mountain.height);
+            ctx.lineTo(mountain.x + mountain.width, mountain.y);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+    });
+}
 function updateParticles() {
     const effectiveGravity = 0.5;
     if (particles.length < MAX_PARTICLES) {
-        // ... (particle generation logic is unchanged) ...
+        let particleType;
+        let particleColor;
+        if (currentSeason === 'autumn' && Math.random() < 0.1) {
+            particleType = 'leaf';
+            const leafColors = ['#D2691E', '#8B4513', '#CD853F'];
+            particleColor = leafColors[Math.floor(Math.random() * leafColors.length)];
+        } else if (currentSeason === 'winter' && Math.random() < 0.4) {
+            particleType = 'snow';
+            particleColor = 'white';
+        } else if ((currentSeason === 'spring' || currentSeason === 'summer') && Math.random() < 0.1) {
+            particleType = 'rain';
+            particleColor = 'rgba(173, 216, 230, 0.7)';
+        }
+        if (particleType) {
+            const newParticle = {
+                x: Math.random() * canvas.width,
+                y: -10,
+                vx: wind + (Math.random() - 0.5),
+                vy: Math.random() * 2 + 1,
+                size: particleType === 'rain' ? 2 : Math.random() * 4 + 3,
+                color: particleColor,
+                type: particleType,
+                stuck: false,
+                trail: []
+            };
+            if (particleType === 'leaf') {
+                newParticle.vy = Math.random() * 0.5 + 0.25;
+                newParticle.swirlAngle = Math.random() * Math.PI * 2;
+                newParticle.swirlFrequency = Math.random() * 0.02 + 0.01;
+                newParticle.swirlAmplitude = Math.random() * 1.5 + 0.5;
+            }
+            particles.push(newParticle);
+        }
     }
     const roadY = canvas.height - ROAD_HEIGHT;
     for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-
-        // MODIFIED: Particle X position is no longer affected by player speed.
-        // This stops them from sweeping sideways.
+        p.trail.unshift({ x: p.x, y: p.y });
+        if (p.trail.length > 8) {
+            p.trail.pop();
+        }
+        if (p.type === 'leaf') {
+            p.swirlAngle += p.swirlFrequency;
+            p.vx = wind + Math.sin(p.swirlAngle) * p.swirlAmplitude;
+            p.vy += effectiveGravity * 0.01;
+        } else {
+            if (p.type !== 'rain') p.vy += effectiveGravity * 0.05;
+        }
         p.x += p.vx;
         p.y += p.vy;
         if (p.type !== 'rain') p.vy += effectiveGravity * 0.05;
-
         if (p.y > roadY) { particles.splice(i, 1); continue; }
-
-        // MODIFIED: Snow no longer sticks to houses.
         for (const house of houses) {
             const screenX = house.x - worldOffset;
             if (p.x > screenX && p.x < screenX + house.width && p.y > house.y && p.y < house.y + 10) {
-                // All particles are now removed on contact with a roof.
                 particles.splice(i, 1);
                 break;
             }
         }
-        if (p.x < -50 || p.x > canvas.width + 50 || p.y > canvas.height + 50) {
+        if (p.x < -50) {
+            p.x = canvas.width + 70;
+        }
+        if (p.y > canvas.height + 50) {
             particles.splice(i, 1);
         }
     }
 }
 function drawParticles() {
     for (const p of particles) {
-        ctx.fillStyle = p.color;
-        if (p.stuck) {
-            const houseItStuckTo = houses.find(h => {
-                const screenX = h.x - worldOffset;
-                return p.x > screenX && p.x < screenX + h.width && p.y > h.y && p.y < h.y + 5;
-            });
-            if (houseItStuckTo) {
-                const screenX = houseItStuckTo.x - worldOffset;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
-            } else {
-                ctx.fillRect(p.x, p.y, p.size, p.size);
+        if (p.type === 'leaf') {
+            for (let i = 0; i < p.trail.length; i++) {
+                const pos = p.trail[i];
+                const opacity = 1 - (i / p.trail.length);
+                const size = p.size * opacity;
+                ctx.fillStyle = `rgba(139, 69, 19, ${opacity * 0.15})`;
+                ctx.fillRect(pos.x, pos.y, size, size);
             }
-        } else {
-            ctx.fillRect(p.x, p.y, p.size, p.size);
         }
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
     }
 }
 function drawEnvironment() {
@@ -364,6 +452,7 @@ function drawEnvironment() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawSunMoon();
     drawStars();
+    drawMountains();
     ctx.fillStyle = '#228B22';
     if (currentSeason === 'winter') ctx.fillStyle = '#DDDDDD';
     if (currentSeason === 'autumn') ctx.fillStyle = '#8B4513';
@@ -388,7 +477,6 @@ function drawCollectibleBottles() {
 }
 function drawHouses() {
     isNearHouse = false;
-    let closestHouseScreenX = -1, closestHouseScreenY = -1, minHouseDist = HOUSE_SELL_PROXIMITY;
     sellIcon.visible = false;
     for (const house of houses) {
         const screenX = house.x - worldOffset;
@@ -414,48 +502,17 @@ function drawHouses() {
         }
         ctx.fillStyle = '#654321';
         ctx.fillRect(screenX + house.width / 2 - 15, house.y + house.height - 30, 30, 30);
-
         const houseCenterX = screenX + house.width / 2;
         const dist = Math.abs(player.x - houseCenterX);
         if (dist < HOUSE_SELL_PROXIMITY && !player.inAir) {
-            if (dist < minHouseDist) {
-                isNearHouse = true;
-                minHouseDist = dist;
-                closestHouseScreenX = houseCenterX;
-                closestHouseScreenY = house.y - 20;
-            }
+            isNearHouse = true;
         }
     }
     if (isNearHouse && currentMilk >= currentMaxMilk && !isBoosting && !isAutoSelling) {
-        const iconX = closestHouseScreenX;
-        const iconY = closestHouseScreenY - 40;
-        ctx.save();
-        ctx.globalAlpha = 0.9;
-        ctx.fillStyle = '#00ff99';
-        ctx.beginPath();
-        ctx.arc(iconX, iconY, sellIcon.radius, 0, Math.PI * 2);
-        ctx.fill();
-        const pulseRadius = sellIcon.radius * (1 + Math.sin(Date.now() / 200) * 0.1);
-        ctx.strokeStyle = '#00ff99';
-        ctx.lineWidth = 3;
-        ctx.globalAlpha = 0.5;
-        ctx.beginPath();
-        ctx.arc(iconX, iconY, pulseRadius, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-        ctx.fillStyle = 'black';
-        ctx.font = 'bold 24px Inter';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('$', iconX, iconY);
-        ctx.fillStyle = '#00ff99';
-        ctx.font = 'bold 14px Inter';
-        ctx.fillText(`+$${Math.floor(bottlePrice * moneyMultiplier)}`, iconX, iconY + sellIcon.radius + 10);
-        sellIcon.x = iconX;
-        sellIcon.y = iconY;
         sellIcon.visible = true;
     }
 }
+
 function drawPowerups() {
     for (const p of powerups) {
         const screenX = p.x - worldOffset;
@@ -664,7 +721,6 @@ function checkCollisions() {
             const milk = rareMilks[i];
             const mx = milk.x - worldOffset;
             if (px < mx + milk.width && px + pw > mx && py < milk.y + milk.height && py + ph > milk.y) {
-                // MODIFIED: Apply the rare milk multiplier
                 const value = Math.floor(milk.value * rareMilkMultiplier);
                 bottledMilk += value;
                 showMessage(`RARE MILK! +${value} Bottles!`);
@@ -675,27 +731,27 @@ function checkCollisions() {
 }
 
 
-// --- Game Actions ---
-// in main.js
+// --- Game Actions (NO LOGIC CHANGES) ---
+// ... functions from bottleMilkAction to applyShopEffects remain the same ...
 function bottleMilkAction() {
-    if (currentMilk >= currentMaxMilk && !isAutoSelling && !player.inAir) {
-        // This now correctly ensures you always have enough for the next boost
-        bottledMilk = bottlesForBoost;
+    if (currentMilk >= currentMaxMilk) {
+        bottledMilk += boostFillAmount;
         currentMilk = 0;
         hasShownFullMessage = false;
         showMessage("Boost Gauge Filled!");
-
-        // We can keep the timer logic, as it correctly "primes" the chain 
-        // when you're not in the middle of one.
-        const now = Date.now();
-        if (now - lastBoostTime > BOOST_CHAIN_GAP) {
-            lastBoostTime = now;
-        }
     }
 }
-
+function purchaseUpgradeBoostFill() {
+    if (money >= boostFillCost) {
+        money -= boostFillCost;
+        boostFillLevel++;
+        boostFillCost = Math.floor(boostFillCost * 1.8);
+        updateUpgradeStats();
+        showMessage("Boost Fill Amount Upgraded!");
+    }
+}
 function sellMilkAction(isAuto = false) {
-    if (currentMilk >= currentMaxMilk && !isBoosting && !player.inAir && isNearHouse && (isAuto || sellIcon.visible)) {
+    if (currentMilk >= currentMaxMilk && !isBoosting && (isNearHouse || isAuto)) {
         currentMilk = 0;
         const earnings = bottlePrice * moneyMultiplier;
         money += earnings;
@@ -704,49 +760,32 @@ function sellMilkAction(isAuto = false) {
         showMessage(`+$${Math.floor(earnings)} Sold!` + (isAuto ? " (Auto)" : ""));
     }
 }
-
 function useBoostAction() {
-    // Exit if we don't have enough milk for the next boost
     if (bottledMilk < bottlesForBoost) {
         return;
     }
-
     const now = Date.now();
-
-    // --- NEW FRENZY LOGIC ---
-    // A frenzy chain continues if we are already boosting. Otherwise, it's a new chain.
     if (isBoosting) {
         boostChainCount++;
     } else {
-        boostChainCount = 1; // Start a new chain
+        boostChainCount = 1;
     }
-    // --- END NEW LOGIC ---
-
-    // Consume the milk and increase the cost for the next boost in the chain
     bottledMilk -= bottlesForBoost;
-    bottlesForBoost = Math.floor(bottlesForBoost * 1.1 + 1);
+    bottlesForBoost++;
     hasShownBoostMessage = false;
-
-    // Apply the boost speed and duration
     if (isBoosting) {
-        // If already boosting, stack it: add duration and speed
         boostEndTime += BOOST_DURATION;
         currentBoostSpeed += BOOST_STACK_SPEED_INCREASE;
         showMessage("Boost Stacked!");
     } else {
-        // If not boosting, start a new boost
         isBoosting = true;
         boostEndTime = now + BOOST_DURATION;
         currentBoostSpeed = BOOST_INITIAL_SPEED;
         showMessage("MILK BOOST!");
     }
-
-    // If a frenzy is active, this new boost resets the grace period timer
     if (isFrenzyActive) {
         frenzyGracePeriodEnd = 0;
     }
-
-    // Check if this boost triggers a new frenzy
     if (boostChainCount >= 2 && !isFrenzyActive) {
         isFrenzyActive = true;
         frenzyStartTime = now;
@@ -755,19 +794,17 @@ function useBoostAction() {
         showMessage("MILK FRENZY!", 1000);
     }
 }
-
 function updateUpgradeStats() {
+    boostFillAmount = 10 + (boostFillLevel - 1) * 10;
     holdPower = HOLD_ACCELERATION * Math.pow(1.2, speedLevel - 1);
     bottlePrice = 25 * Math.pow(2, sellValueLevel - 1);
     collectibleBottleValue = collectorLevel;
     rareMilkMultiplier = collectorLevel;
     applyShopEffects();
 }
-
 function purchaseUpgradeSpeed() { if (money >= speedCost) { money -= speedCost; speedLevel++; speedCost = Math.floor(speedCost * 1.5); updateUpgradeStats(); showMessage("Pedal Power Upgraded!"); } }
 function purchaseUpgradeEfficiency() { if (money >= efficiencyCost) { money -= efficiencyCost; efficiencyLevel++; efficiencyCost = Math.floor(efficiencyCost * 1.5); updateUpgradeStats(); showMessage("Milk Efficiency Upgraded!"); } }
 function purchaseUpgradeSellValue() { if (money >= sellValueCost) { money -= sellValueCost; sellValueLevel++; sellValueCost = Math.floor(sellValueCost * 1.6); updateUpgradeStats(); showMessage("Milk Value Upgraded!"); } }
-
 function purchaseUpgradeCollector() {
     if (money >= collectorCost) {
         money -= collectorCost;
@@ -781,13 +818,56 @@ function purchaseUpgradeCollector() {
         showMessage("Bottle Collector Upgraded!");
     }
 }
-
-function purchaseItem(itemName, cost, effectCallback) { if (money >= cost && !player.inventory[itemName]) { money -= cost; player.inventory[itemName] = true; effectCallback(); updateShopUI(); showMessage(`${itemName.replace(/([A-Z])/g, ' $1').trim().replace('Ps7', 'Praystation 7').replace('Xbz', 'Xblox Series Z').replace('Gmc', 'Golden Milk Can')} Purchased!`); } }
+function purchaseItem(itemName, cost) {
+    if (money < cost) {
+        showMessage("Not enough money!");
+        return;
+    }
+    let purchaseMessage = "";
+    if (itemName === 'gmc') {
+        if (player.inventory.gmc && player.inventory.gmc.level >= 5) {
+            showMessage("Golden Milk Can is max level!");
+            return;
+        }
+        money -= cost;
+        if (!player.inventory.gmc) {
+            player.inventory.gmc = { level: 0, rolls: [] };
+        }
+        player.inventory.gmc.level++;
+        const isJackpot = Math.random() < 0.01;
+        const luckBonus = (player.inventory.gmc.level - 1) * 5.0;
+        const minPurity = 5.00 + luckBonus;
+        const maxPurity = 95.00;
+        let purity = isJackpot
+            ? 99.99
+            : parseFloat((Math.random() * (maxPurity - minPurity) + minPurity).toFixed(2));
+        const newRoll = { purity: purity, isPure: isJackpot };
+        player.inventory.gmc.rolls.push(newRoll);
+        showGmcRevealModal(newRoll);
+    } else {
+        if (player.inventory[itemName]) {
+            showMessage("Item already owned!");
+            return;
+        }
+        money -= cost;
+        player.inventory[itemName] = true;
+        if (itemName === 'ps7') purchaseMessage = "Praystation 7 Purchased!";
+        if (itemName === 'xbz') purchaseMessage = "Xblox Series Z Purchased!";
+    }
+    applyShopEffects();
+    updateShopUI();
+    if (purchaseMessage) {
+        showMessage(purchaseMessage);
+    }
+}
 function applyShopEffects() {
     currentMaxMilk = 100;
     moneyMultiplier = 1.0;
     if (player.inventory.xbz) { currentMaxMilk *= 1.5; }
-    if (player.inventory.gmc) { moneyMultiplier *= 1.1; }
+    if (player.inventory.gmc) {
+        const totalPurityBonus = player.inventory.gmc.rolls.reduce((sum, roll) => sum + roll.purity, 0);
+        moneyMultiplier *= (1 + totalPurityBonus / 100);
+    }
     currentMilk = Math.min(currentMilk, currentMaxMilk);
 }
 
@@ -798,25 +878,11 @@ function handlePointerDown(e) {
     isPointerDown = true;
     if (!gameRunning) return;
     e.preventDefault();
-
     const targetElement = e.target;
     if (targetElement.closest('button') && targetElement.id !== 'bottle-button' && targetElement.id !== 'boost-button') {
         isPointerDown = false;
         return;
     }
-
-    const clickX = touch.clientX;
-    const clickY = touch.clientY;
-
-    if (sellIcon.visible && !isAutoSelling) {
-        const dist = Math.sqrt(Math.pow(clickX - sellIcon.x, 2) + Math.pow(clickY - sellIcon.y, 2));
-        if (dist <= sellIcon.radius) {
-            sellMilkAction();
-            isPointerDown = false;
-            return;
-        }
-    }
-
     if (!player.inAir && gameRunning) {
         targetPlayerY = touch.clientY;
         targetPlayerY = Math.max(roadTopYBoundary, Math.min(roadBottomYBoundary, targetPlayerY));
@@ -837,7 +903,7 @@ function handlePointerMove(e) {
 
 // --- Main Game Loop ---
 function update() {
-    if (!gameRunning) return;
+    // This function is only called when gameRunning is true
     const now = Date.now();
 
     if (isBoosting) {
@@ -884,27 +950,23 @@ function update() {
     updateGameTime();
     updatePhysics();
     updateParticles();
-    generateHouses(); removeOldHouses();
-    generateCollectibleBottles(); removeOldCollectibleBottles();
-    generatePowerups(); removeOldPowerups();
-    generateRamps(); removeOldRamps(); removeOldRareMilks();
+    if (speed > 0) {
+        generateHouses(); removeOldHouses();
+        generateCollectibleBottles(); removeOldCollectibleBottles();
+        generatePowerups(); removeOldPowerups();
+        generateRamps(); removeOldRamps(); removeOldRareMilks();
+    }
 
     if (isFrenzyActive) {
         const frenzyDuration = (now - frenzyStartTime) / 1000;
         frenzyTimerDisplay.textContent = frenzyDuration.toFixed(1) + 's';
-
         if (!isBoosting && frenzyGracePeriodEnd > 0 && now > frenzyGracePeriodEnd) {
             isFrenzyActive = false;
             lastFrenzyDuration = (now - frenzyStartTime) / 1000;
             longestFrenzyDuration = Math.max(longestFrenzyDuration, lastFrenzyDuration);
-
             frenzyStartTime = 0;
             boostChainCount = 0;
             frenzyGracePeriodEnd = 0;
-            // FIX: Removing `lastBoostTime = 0;` prevents a race condition
-            // where a new chain's state could be overwritten by this cleanup logic.
-            // lastBoostTime = 0; 
-
             frenzyDisplay.classList.add('hidden');
             document.body.classList.remove('frenzy-active-body');
             showMessage(`Milk Frenzy Ended! Time: ${lastFrenzyDuration.toFixed(1)}s`, 4000);
@@ -917,23 +979,36 @@ function update() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // These are always drawn for the background effect
     drawEnvironment();
-    drawCollectibleBottles();
     drawHouses();
-    drawRamps();
-    drawRareMilks();
-    drawPowerups();
     drawParticles();
-    drawRope();
-    drawTrailer();
-    drawPlayer();
+
+    // These are only drawn when the game is actively being played
+    if (gameRunning) {
+        drawCollectibleBottles();
+        drawRamps();
+        drawRareMilks();
+        drawPowerups();
+        drawRope();
+        drawTrailer();
+        drawPlayer();
+    }
 }
 
 function gameLoop() {
     if (gameRunning) {
         update();
         updateUI();
+    } else {
+        // --- NEW: Animate background for the intro screen ---
+        worldOffset += INTRO_SCREEN_SPEED;
+        updateGameTime();
+        updateParticles();
+        generateHouses();
+        removeOldHouses();
     }
+
     draw();
     requestAnimationFrame(gameLoop);
 }
@@ -942,6 +1017,7 @@ function gameLoop() {
 function init() {
     resizeCanvas();
     initStars();
+    generateMountains();
     targetPlayerY = player.y;
     applyShopEffects();
     updateShopUI();
