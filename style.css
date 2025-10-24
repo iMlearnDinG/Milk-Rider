@@ -17,6 +17,97 @@ body {
     cursor: pointer;
 }
 
+/* --- NEW: Intro Screen Styles --- */
+#intro-screen {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+}
+
+#intro-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 5rem;
+    color: white;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 20px rgba(0, 191, 255, 0.7);
+    animation: bounce 2.5s infinite ease-in-out;
+}
+
+/* NEW: Keyframes for rotation */
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* NEW: Style for the rotating milk icon */
+#intro-milk-icon {
+    font-size: 4rem;
+    animation: rotate 10s linear infinite;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+
+.intro-btn {
+    width: 200px;
+    padding: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.2s ease-in-out;
+}
+
+    .intro-btn:hover {
+        transform: scale(1.05);
+    }
+
+    .intro-btn:active {
+        transform: scale(0.98);
+    }
+
+/* --- NEW: Game Active State --- */
+/* Hide game UI by default */
+.top-metrics-bar, #on-screen-upgrades-container, .floating-btn, #open-shop-button {
+    display: none;
+}
+
+/* Show intro screen by default */
+#intro-screen {
+    display: flex;
+}
+
+/* When the game starts, hide the intro and show the UI */
+body.game-active #intro-screen {
+    display: none;
+}
+
+body.game-active .top-metrics-bar,
+body.game-active #on-screen-upgrades-container,
+body.game-active #open-shop-button {
+    display: flex;
+}
+
+body.game-active .floating-btn {
+    display: flex; /* It's already position: fixed */
+}
+/* --- END OF NEW STYLES --- */
+
+
 /* --- NEW NOTIFICATION SYSTEM STYLES (MODIFIED) --- */
 #message-container {
     position: fixed;
@@ -52,16 +143,16 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 6px 10px;
-    border-radius: 8px;
+    padding: 0.2rem; /* Adjusted padding for a more square feel */
+    border-radius: 10px; /* Slightly more rounded */
     color: white;
-    font-weight: 600;
-    font-size: 0.8rem;
+    font-weight: 700;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     transition: all 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    min-width: 140px;
+    width: 70px; /* Set a fixed width, removing min-width */
+    height: 50px;
     cursor: pointer;
 }
 
@@ -77,14 +168,23 @@ body {
 
 .upgrade-title {
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.45rem; /* 12px */
+}
+
+.upgrade-description {
+    font-size: 0.44rem; /* ~10.4px */
+    font-weight: 400;
+    opacity: 0.8;
+    margin-top: 1px;
+    margin-bottom: 2px;
+    line-height: 1.1; /* Tighter line spacing */
 }
 
 .upgrade-details {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    font-size: 0.75rem;
+    font-size: 0.4rem; /* ~10.4px, our smallest text */
     opacity: 0.9;
     margin-top: 2px;
 }
@@ -97,18 +197,52 @@ body {
     backdrop-filter: blur(10px);
 }
 
+/* --- MODIFIED: Welcome Modal Polish --- */
+
+/* This is the new grid container */
+.instructions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.instruction-item {
+    display: flex;
+    flex-direction: column; /* Stack icon on top of text */
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem; /* Space between icon and text */
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 1rem 0.5rem; /* More vertical, less horizontal padding */
+    border-radius: 0.75rem;
+    font-size: 0.75rem; /* Font scaled down */
+    line-height: 1.4;
+}
+
+.icon-container {
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* --- End Welcome Modal Polish --- */
+
+
 /* Universal circular button style */
 .game-btn-circle {
     position: relative;
     z-index: 10;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 5rem;
-    height: 5rem;
+    width: 3.5rem; /* MODIFIED: Was 4.5rem */
+    height: 3.5rem; /* MODIFIED: Was 4.5rem */
     border-radius: 9999px;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
     backdrop-filter: blur(8px);
-    font-size: 0.75rem;
+    font-size: 0.55rem; /* MODIFIED */
     font-weight: 600;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     transition: all 0.2s ease-in-out;
@@ -152,8 +286,9 @@ body {
     transition: top 0.1s linear, left 0.1s linear;
 }
 
-/* Glow/Pulse animations */
-@keyframes glow {
+/* --- MODIFIED: Glow/Pulse animations --- */
+/* Green Glow (Sell) */
+@keyframes glow-green {
     0%, 100% {
         box-shadow: 0 0 12px 2px #00ff99;
     }
@@ -163,27 +298,44 @@ body {
     }
 }
 
-.glow {
-    animation: glow 1.5s infinite ease-in-out;
+.glow-green {
+    animation: glow-green 1.5s infinite ease-in-out;
     border-color: #00ff99;
 }
 
-@keyframes pulse {
+/* Red Glow (Boost) */
+@keyframes glow-red {
     0%, 100% {
-        transform: scale(1);
-        opacity: 0.8;
+        box-shadow: 0 0 12px 2px #ff1111;
     }
 
     50% {
-        transform: scale(1.05);
-        opacity: 1;
+        box-shadow: 0 0 20px 8px #ff1111;
     }
 }
 
-.pulse {
-    animation: pulse 2s infinite ease-in-out;
-    opacity: 0.8;
+.glow-red {
+    animation: glow-red 1.5s infinite ease-in-out;
+    border-color: #ff1111;
 }
+
+/* Orange Glow (Charge Boost) */
+@keyframes glow-orange {
+    0%, 100% {
+        box-shadow: 0 0 12px 2px #ff9900;
+    }
+
+    50% {
+        box-shadow: 0 0 20px 8px #ff9900;
+    }
+}
+
+.glow-orange {
+    animation: glow-orange 1.5s infinite ease-in-out;
+    border-color: #ff9900;
+}
+/* --- END MODIFICATION --- */
+
 
 /* --- MODIFIED: Milk Frenzy Styles --- */
 
@@ -258,21 +410,87 @@ body.frenzy-active-body {
     animation: frenzy-border-flash 1s infinite linear;
 }
 
+/* --- ADDED: Golden Milk Can Styles --- */
+@keyframes text-glow-gold {
+    0%, 100% {
+        text-shadow: 0 0 5px #ffd700, 0 0 10px #ffb700;
+    }
 
-/* --- MODIFIED: Mobile Responsive Styles --- */
+    50% {
+        text-shadow: 0 0 10px #ffec80, 0 0 20px #ffd700;
+    }
+}
+
+.pure-gold-glow-text {
+    color: #FFD700;
+    animation: text-glow-gold 2s infinite ease-in-out;
+}
+
+@keyframes card-glow-gold {
+    0%, 100% {
+        box-shadow: 0 0 30px 10px rgba(255, 255, 255, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 45px 15px rgba(255, 255, 0, 0.7);
+    }
+}
+
+#gmc-card.pure-gold {
+    border-color: #FFD700;
+    animation: card-glow-gold 2.5s infinite ease-in-out;
+}
+/* --- END: Golden Milk Can Styles --- */
+
+/* --- NEW: Shop & Inventory Icon Styles --- */
+.shop-item-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.inventory-item-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+/* --- END: Shop & Inventory Icon Styles --- */
+
+
+/* This existing block is fine */
 @media (max-width: 640px) {
-    /* Centering is now automatic, so we only need to adjust font sizes */
+    #intro-title {
+        font-size: 3.5rem;
+    }
+
     .frenzy-text {
-        font-size: 2rem; /* Smaller font on mobile */
+        font-size: 2rem;
     }
 
     .frenzy-timer {
-        font-size: 1.5rem; /* Smaller font on mobile */
-        margin-top: 0.75rem; /* Slightly reduce space for smaller font */
+        font-size: 1.5rem;
+        margin-top: 0.75rem;
     }
 
-    /* Adjust top bar text size */
     .text-sm {
-        font-size: 0.75rem; /* Make text a bit smaller if needed */
+        font-size: 0.75rem;
     }
+}
+
+@media (max-width: 420px) {
+    .top-metrics-bar {
+        padding: 0.5rem 0.75rem; /* Reduce padding */
+    }
+
+        .top-metrics-bar strong, .top-metrics-bar span {
+            font-size: 0.65rem; /* Make the font even smaller */
+        }
 }
