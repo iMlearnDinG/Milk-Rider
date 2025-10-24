@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milk Rider</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="m-0 p-0">
+
+    <canvas id="game-canvas"></canvas>
+
+    <div class="fixed left-4 right-4 top-4 z-10 rounded-xl bg-black/50 p-3 text-white shadow-lg backdrop-blur-md" style="border: 1px solid rgba(255, 255, 255, 0.1);">
+        <div class="container mx-auto flex max-w-4xl items-center justify-between text-sm sm:text-lg">
+            <div>
+                <strong>Distance:</strong> <span id="distance-display">0</span>m
+            </div>
+            <div class="text-green-300">
+                <strong>Money:</strong> $<span id="money-display">0</span>
+            </div>
+            <div class="text-yellow-300">
+                <strong>Longest Frenzy:</strong> <span id="longest-frenzy-display">0.0</span>s
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed right-4 top-24 z-10 flex flex-col items-end gap-3">
+        <button id="open-shop-button" class="game-btn-circle">
+            Shop
+        </button>
+    </div>
+
+    <div id="on-screen-upgrades-container" class="fixed left-4 top-24 z-10 flex flex-col gap-2">
+        <button id="upgrade-speed-button" class="upgrade-btn bg-blue-500 hover:bg-blue-600">
+            <span class="upgrade-title">Pedal Power</span>
+            <div class="upgrade-details">
+                <span>Lvl: <span id="speed-level-display">1</span></span>
+                <span>Cost: $<span id="speed-cost-display">50</span></span>
+            </div>
+        </button>
+        <button id="upgrade-efficiency-button" class="upgrade-btn bg-green-500 hover:bg-green-600">
+            <span class="upgrade-title">Milk Efficiency</span>
+            <div class="upgrade-details">
+                <span>Lvl: <span id="efficiency-level-display">1</span></span>
+                <span>Cost: $<span id="efficiency-cost-display">50</span></span>
+            </div>
+        </button>
+        <button id="upgrade-sell-button" class="upgrade-btn bg-yellow-500 hover:bg-yellow-600">
+            <span class="upgrade-title">Milk Value</span>
+            <div class="upgrade-details">
+                <span>Lvl: <span id="sell-level-display">1</span></span>
+                <span>Cost: $<span id="sell-cost-display">75</span></span>
+            </div>
+        </button>
+        <button id="upgrade-collector-button" class="upgrade-btn bg-pink-500 hover:bg-pink-600">
+            <span class="upgrade-title">Bottle Collector</span>
+            <div class="upgrade-details">
+                <span>Lvl: <span id="collector-level-display">1</span></span>
+                <span>Cost: $<span id="collector-cost-display">200</span></span>
+            </div>
+        </button>
+    </div>
+
+    <button id="bottle-button" class="game-btn-circle floating-btn" disabled style="left: 100px; top: 50%;">
+        Bottle Milk
+    </button>
+    <button id="boost-button" class="game-btn-circle floating-btn" disabled style="left: 100px; top: calc(50% + 90px);">
+        Boost
+    </button>
+
+    <div id="frenzy-display" class="flex hidden flex-col items-center">
+        <div class="frenzy-text">MILK FRENZY!</div>
+        <div id="frenzy-timer-display" class="frenzy-timer">0.0s</div>
+    </div>
+
+
+    <div id="welcome-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-lg rounded-2xl bg-white p-6 text-gray-800 shadow-xl">
+            <h1 class="mb-4 text-center text-4xl font-bold">Welcome to Milk Rider!</h1>
+            <p class="mb-6 text-center text-lg">Here's how to play:</p>
+
+            <ol class="list-inside list-decimal space-y-4 text-lg">
+                <li><strong>HOLD ANYWHERE</strong> to pedal (accelerate).</li>
+                <li><strong>MOVE CURSOR/FINGER</strong> up/down to steer smoothly within the road.</li>
+                <li>Your milk trailer now fills based on your <strong>speed</strong>. Go fast to fill it fast!</li>
+                <li>When the trailer is full, the floating <strong class="text-blue-600">Bottle Milk</strong> button glows. Tap it!</li>
+                <li>Sell full trailers at houses by tapping the <strong class="text-green-600">$</strong> icon.</li>
+                <li>Hit <strong class="text-gray-400">ramps</strong> to jump and collect <strong class="text-yellow-400">rare milk bottles</strong>!</li>
+                <li>Use the on-screen buttons in the top-left to upgrade on the fly!</li>
+                <li>Check the <strong class="text-purple-500">Shop</strong> for powerful items!</li>
+            </ol>
+
+            <button id="start-game-button" class="mt-8 w-full transform rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 font-bold text-white transition-transform hover:scale-105 hover:from-blue-600 hover:to-purple-700">
+                Start Riding!
+            </button>
+        </div>
+    </div>
+
+
+    <div id="shop-modal" class="modal-backdrop fixed inset-0 z-50 flex hidden items-center justify-center p-4">
+        <div class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 text-gray-800 shadow-xl">
+            <h2 class="mb-2 text-center text-3xl font-bold">Item Shop</h2>
+            <p class="mb-4 text-center text-sm text-gray-500">Buy items for permanent bonuses!</p>
+
+            <div class="space-y-4">
+                <div class="rounded-lg bg-gray-100 p-3">
+                    <div class="mb-1 flex items-center justify-between">
+                        <span class="text-lg font-semibold">Praystation 7</span>
+                        <button id="buy-ps7" class="rounded-lg bg-green-500 px-3 py-1 font-bold text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50">$50,000</button>
+                    </div>
+                    <p class="text-sm text-gray-600">Bonus: Cosmetic item.</p>
+                </div>
+                <div class="rounded-lg bg-gray-100 p-3">
+                    <div class="mb-1 flex items-center justify-between">
+                        <span class="text-lg font-semibold">Xblox Series Z</span>
+                        <button id="buy-xbz" class="rounded-lg bg-green-500 px-3 py-1 font-bold text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50">$75,000</button>
+                    </div>
+                    <p class="text-sm text-gray-600">Bonus: Increases Milk Trailer Capacity by 50%.</p>
+                </div>
+                <div class="rounded-lg bg-gray-100 p-3">
+                    <div class="mb-1 flex items-center justify-between">
+                        <span class="text-lg font-semibold">Golden Milk Can</span>
+                        <button id="buy-gmc" class="rounded-lg bg-green-500 px-3 py-1 font-bold text-white hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50">$250,000</button>
+                    </div>
+                    <p class="text-sm text-gray-600">Bonus: Increases all money earned by 10%.</p>
+                </div>
+            </div>
+
+            <hr class="my-4 border-gray-300">
+
+            <h3 class="mb-2 text-center text-xl font-bold">Inventory</h3>
+            <ul id="inventory-list" class="list-inside list-disc text-center text-gray-600">
+                <li>No items yet!</li>
+            </ul>
+
+            <button id="close-shop-button" class="mt-6 w-full rounded-lg bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-600">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <div id="message-container"></div>
+
+
+    <script src="ui.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

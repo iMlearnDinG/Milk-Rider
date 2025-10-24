@@ -1,0 +1,278 @@
+/* Use Inter font */
+body {
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Prevent scrolling */
+    background-color: #0a0a0a; /* Dark background */
+    color: #f5f5f7;
+    touch-action: manipulation; /* Disable double-tap zoom on mobile */
+}
+
+/* Style the game canvas */
+#game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+/* --- NEW NOTIFICATION SYSTEM STYLES (MODIFIED) --- */
+#message-container {
+    position: fixed;
+    top: 220px; /* Position from the top */
+    right: 20px; /* Position from the right */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Align items to the right */
+    gap: 10px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.message-card {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.5rem;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease-in-out;
+    white-space: nowrap;
+}
+/* --- END OF NEW STYLES --- */
+
+
+/* --- NEW ON-SCREEN UPGRADE BUTTON STYLES --- */
+.upgrade-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 140px;
+    cursor: pointer;
+}
+
+    .upgrade-btn:active {
+        transform: scale(0.95);
+    }
+
+    .upgrade-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: #555 !important;
+    }
+
+.upgrade-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.upgrade-details {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.75rem;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+/* --- END OF NEW STYLES --- */
+
+
+/* Modal backdrop */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+/* Universal circular button style */
+.game-btn-circle {
+    position: relative;
+    z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 5rem;
+    height: 5rem;
+    border-radius: 9999px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    backdrop-filter: blur(8px);
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease-in-out;
+    transform: scale(1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0.25rem;
+    line-height: 1.25;
+    cursor: pointer;
+}
+
+    .game-btn-circle:hover {
+        transform: scale(1.1);
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    .game-btn-circle:active {
+        transform: scale(0.95);
+    }
+
+    .game-btn-circle:disabled {
+        background-color: rgba(107, 114, 128, 0.5);
+        color: rgb(156, 163, 175);
+        cursor: not-allowed;
+        opacity: 0.7;
+        transform: scale(1);
+    }
+
+        .game-btn-circle:disabled:hover {
+            transform: scale(1);
+            background-color: rgba(107, 114, 128, 0.5);
+        }
+
+
+/* Class specifically for buttons that follow the player */
+.floating-btn {
+    position: fixed;
+    z-index: 20;
+    transition: top 0.1s linear, left 0.1s linear;
+}
+
+/* Glow/Pulse animations */
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 12px 2px #00ff99;
+    }
+
+    50% {
+        box-shadow: 0 0 20px 8px #00ff99;
+    }
+}
+
+.glow {
+    animation: glow 1.5s infinite ease-in-out;
+    border-color: #00ff99;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite ease-in-out;
+    opacity: 0.8;
+}
+
+/* --- MODIFIED: Milk Frenzy Styles --- */
+
+/* This is now the main container that gets centered */
+#frenzy-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 101;
+    pointer-events: none; /* Allows clicking through the container */
+}
+
+/* Milk Frenzy Animation (Unchanged) */
+@keyframes frenzy-flash {
+    0%, 100% {
+        color: #FFD700;
+        text-shadow: 0 0 10px #FFD700, 0 0 20px #FF8C00;
+    }
+
+    50% {
+        color: #FF4500;
+        text-shadow: 0 0 10px #FF4500, 0 0 20px #DC143C;
+    }
+}
+
+/* Text is now a simple flex child, positioning is handled by the parent */
+.frenzy-text {
+    font-size: 3rem;
+    font-weight: 800;
+    animation: frenzy-flash 0.5s infinite linear;
+    white-space: nowrap; /* This ensures the text stays on one line */
+}
+
+/* Timer is also a flex child */
+.frenzy-timer {
+    margin-top: 1rem; /* Creates space between the title and the timer */
+    font-size: 2rem;
+    font-weight: 600;
+    color: white;
+    background-color: rgba(0,0,0,0.6);
+    padding: 5px 15px;
+    border-radius: 8px;
+}
+/* --- END OF MODIFIED STYLES --- */
+
+
+/* --- NEW: Psychedelic Frenzy Border Effect --- */
+@keyframes frenzy-border-flash {
+    0% {
+        box-shadow: inset 0 0 30px 15px #ff00ff;
+    }
+
+    25% {
+        box-shadow: inset 0 0 30px 15px #00ffff;
+    }
+
+    50% {
+        box-shadow: inset 0 0 30px 15px #ffff00;
+    }
+
+    75% {
+        box-shadow: inset 0 0 30px 15px #00ff00;
+    }
+
+    100% {
+        box-shadow: inset 0 0 30px 15px #ff00ff;
+    }
+}
+
+body.frenzy-active-body {
+    animation: frenzy-border-flash 1s infinite linear;
+}
+
+
+/* --- MODIFIED: Mobile Responsive Styles --- */
+@media (max-width: 640px) {
+    /* Centering is now automatic, so we only need to adjust font sizes */
+    .frenzy-text {
+        font-size: 2rem; /* Smaller font on mobile */
+    }
+
+    .frenzy-timer {
+        font-size: 1.5rem; /* Smaller font on mobile */
+        margin-top: 0.75rem; /* Slightly reduce space for smaller font */
+    }
+
+    /* Adjust top bar text size */
+    .text-sm {
+        font-size: 0.75rem; /* Make text a bit smaller if needed */
+    }
+}
